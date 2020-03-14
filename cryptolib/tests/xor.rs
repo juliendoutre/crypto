@@ -1,3 +1,4 @@
+use cryptolib::cipher;
 use cryptolib::xor;
 use hex;
 
@@ -12,4 +13,15 @@ fn xor_blocks() {
     let expected_output = hex::decode(expected_output).unwrap();
 
     assert_eq!(xor(&first_block, &second_block).unwrap(), expected_output);
+}
+
+#[test]
+fn repeating_xor() {
+    let plaintext = b"Burning 'em, if you ain't quick and nimble\nI go crazy when I hear a cymbal";
+    let key = b"ICE";
+
+    let expected_ciphertext = "0b3637272a2b2e63622c2e69692a23693a2a3c6324202d623d63343c2a26226324272765272a282b2f20430a652e2c652a3124333a653e2b2027630c692b20283165286326302e27282f";
+    let expected_ciphertext = hex::decode(expected_ciphertext).unwrap();
+
+    assert_eq!(cipher::repeating_xor(plaintext, key), expected_ciphertext)
 }

@@ -1,5 +1,6 @@
 use std::{error::Error, fmt};
 
+pub mod cipher;
 pub mod cracker;
 pub mod english;
 pub mod text;
