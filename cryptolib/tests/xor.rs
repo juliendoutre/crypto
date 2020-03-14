@@ -1,4 +1,5 @@
 use cryptolib::cipher;
+use cryptolib::text;
 use cryptolib::xor;
 use hex;
 
@@ -24,4 +25,12 @@ fn repeating_xor() {
     let expected_ciphertext = hex::decode(expected_ciphertext).unwrap();
 
     assert_eq!(cipher::repeating_xor(plaintext, key), expected_ciphertext)
+}
+
+#[test]
+fn hamming_distance() {
+    assert_eq!(
+        text::hamming_distance(b"this is a test", b"wokka wokka!!!"),
+        37
+    )
 }

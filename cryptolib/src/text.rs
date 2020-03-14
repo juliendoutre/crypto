@@ -39,3 +39,10 @@ pub fn bigramic_frequencies(plaintext: &str) -> HashMap<String, f32> {
 
     freq
 }
+
+pub fn hamming_distance(a: &[u8], b: &[u8]) -> usize {
+    a.iter()
+        .zip(b.iter())
+        .fold(0, |s, (i, j)| s + (i ^ j).count_ones() as usize)
+        + (a.len() - b.len()) * 8
+}

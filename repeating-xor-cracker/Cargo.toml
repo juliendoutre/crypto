@@ -1,0 +1,9 @@
+[package]
+name = "repeating-xor-cracker"
+version = "0.1.0"
+authors = ["Julien Doutre <jul.doutre@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+cryptolib = {path = "../cryptolib"}
+base64 = "0.12.0"
