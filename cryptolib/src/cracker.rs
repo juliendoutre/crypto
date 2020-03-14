@@ -25,7 +25,7 @@ pub fn crack_single_xor(ciphertext: &[u8]) -> Option<(char, Vec<u8>, f32)> {
     let mut scores = HashMap::<u8, f32>::new();
 
     for k in 0..=255 as u8 {
-        let plaintext = xor(&ciphertext, &vec![k; ciphertext.len()]).unwrap();
+        let plaintext = xor(&ciphertext, &vec![k; ciphertext.len()]);
         if let Some(plaintext) = match String::from_utf8(plaintext) {
             Ok(m) => Some(m),
             Err(_) => None,
@@ -40,7 +40,7 @@ pub fn crack_single_xor(ciphertext: &[u8]) -> Option<(char, Vec<u8>, f32)> {
     if results.len() > 0 {
         return Some((
             *results[0].0 as char,
-            xor(&ciphertext, &vec![*results[0].0; ciphertext.len()]).unwrap(),
+            xor(&ciphertext, &vec![*results[0].0; ciphertext.len()]),
             *results[0].1,
         ));
     } else {

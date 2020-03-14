@@ -12,7 +12,7 @@ fn xor_blocks() {
     let expected_output = "746865206b696420646f6e277420706c6179";
     let expected_output = hex::decode(expected_output).unwrap();
 
-    assert_eq!(xor(&first_block, &second_block).unwrap(), expected_output);
+    assert_eq!(xor(&first_block, &second_block), expected_output);
 }
 
 #[test]
