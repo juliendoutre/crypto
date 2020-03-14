@@ -1,2 +1,2 @@
 [workspace]
-members = ["cryptolib", "single-xor-cracker"]
+members = ["cryptolib", "single-xor-cracker", "single-xor-detector"]

@@ -1,5 +1,9 @@
 use std::{error::Error, fmt};
 
+pub mod cracker;
+pub mod english;
+pub mod text;
+
 #[derive(Debug)]
 pub struct BlockSizeError;
 
