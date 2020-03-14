@@ -1,0 +1,2 @@
+[workspace]
+members = ["cryptolib", "single-xor-cracker"]
