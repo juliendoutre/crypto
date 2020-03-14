@@ -40,5 +40,26 @@ fn main() {
         }
     }
 
-    println!("{}", best_key_size);
+    let mut transposed_blocks = vec![Vec::<u8>::new(); best_key_size];
+
+    contents.chunks(best_key_size).for_each(|b| {
+        b.iter()
+            .enumerate()
+            .for_each(|(i, c)| transposed_blocks[i].push(*c))
+    });
+
+    let mut key = Vec::<u8>::with_capacity(best_key_size);
+
+    transposed_blocks.iter().for_each(|b| {
+        if let Some((k, _, _)) = cryptolib::cracker::crack_single_xor(&b) {
+            key.push(k as u8);
+        } else {
+            println!("Could not find a single valid plaintext");
+        }
+    });
+
+    println!(
+        "{:?}",
+        String::from_utf8(cryptolib::cipher::repeating_xor(&contents, &key)).unwrap()
+    );
 }
