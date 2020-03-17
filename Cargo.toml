@@ -4,5 +4,6 @@ members = [
     "single-xor-cracker",
     "single-xor-detector",
     "repeating-xor-cracker",
-    "aes-ecb-decryptor"
+    "aes-ecb-decryptor",
+    "aes-ecb-detector"
 ]

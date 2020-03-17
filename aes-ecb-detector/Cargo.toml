@@ -1,0 +1,9 @@
+[package]
+name = "aes-ecb-detector"
+version = "0.1.0"
+authors = ["Julien Doutre <jul.doutre@gmail.com>"]
+edition = "2018"
+
+[dependencies]
+cryptolib = {path = "../cryptolib"}
+hex = "0.4.2"
