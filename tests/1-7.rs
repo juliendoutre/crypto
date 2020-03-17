@@ -1,4 +1,9 @@
-CRIwqt4+szDbqkNY+I0qbDe3LQz0wiw0SuxBQtAM5TDdMbjCMD/venUDW9BL
+use base64;
+use cryptolib::{self, cipher::Cipher};
+
+#[test]
+fn decrypt_aes_ecb() {
+    let data = "CRIwqt4+szDbqkNY+I0qbDe3LQz0wiw0SuxBQtAM5TDdMbjCMD/venUDW9BL
 PEXODbk6a48oMbAY6DDZsuLbc0uR9cp9hQ0QQGATyyCESq2NSsvhx5zKlLtz
 dsnfK5ED5srKjK7Fz4Q38/ttd+stL/9WnDzlJvAo7WBsjI5YJc2gmAYayNfm
 CW2lhZE/ZLG0CBD2aPw0W417QYb4cAIOW92jYRiJ4PTsBBHDe8o4JwqaUac6
@@ -61,4 +66,18 @@ zGMaKbTG4dns1OFB1g7NCiPb6s1lv0/lHFAF6HwoYV/FPSL/pirxyDSBb/FR
 RA3PIfmvGfMUGFVWlyS7+O73l5oIJHxuaJrR4EenzAu4Avpa5d+VuiYbM10a
 LaVegVPvFn4pCP4U/Nbbw4OTCFX2HKmWEiVBB0O3J9xwXWpxN1Vr5CDi75Fq
 NhxYCjgSJzWOUD34Y1dAfcj57VINmQVEWyc8Tch8vg9MnHGCOfOjRqp0VGyA
-S15AVD2QS1V6fhRimJSVyT6QuGb8tKRsl2N+a2Xze36vgMhw7XK7zh//jC2H
+S15AVD2QS1V6fhRimJSVyT6QuGb8tKRsl2N+a2Xze36vgMhw7XK7zh//jC2H";
+    let mut contents = Vec::<u8>::new();
+
+    for line in data.split('\n') {
+        contents.append(&mut base64::decode(line).unwrap());
+    }
+
+    let key = "YELLOW SUBMARINE".as_bytes();
+
+    let plaintext = cryptolib::cipher::AesEcb::new()
+        .decrypt(&contents, key, None)
+        .unwrap();
+
+    println!("{:?}", String::from_utf8(plaintext).unwrap());
+}

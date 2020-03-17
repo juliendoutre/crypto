@@ -1,4 +1,15 @@
-HUIfTQsPAh9PE048GmllH0kcDk4TAQsHThsBFkU2AB4BSWQgVB0dQzNTTmVS
+use base64;
+use cryptolib::{cipher::*, text::*};
+use std::f32;
+
+#[test]
+fn test_hamming_distance() {
+    assert_eq!(hamming_distance(b"this is a test", b"wokka wokka!!!"), 37)
+}
+
+#[test]
+fn test_break_repeating_key_xor() {
+    let data = "HUIfTQsPAh9PE048GmllH0kcDk4TAQsHThsBFkU2AB4BSWQgVB0dQzNTTmVS
 BgBHVBwNRU0HBAxTEjwMHghJGgkRTxRMIRpHKwAFHUdZEQQJAGQmB1MANxYG
 DBoXQR0BUlQwXwAgEwoFR08SSAhFTmU+Fgk4RQYFCBpGB08fWXh+amI2DB0P
 QQ1IBlUaGwAdQnQEHgFJGgkRAlJ6f0kASDoAGhNJGk9FSA8dDVMEOgFSGQEL
@@ -61,4 +72,53 @@ DxsJSw1ICFUdBgpTJjsIF00GAE1ULB1NPRpPLF5JAgJUVAUAAAYKCAFFXjUe
 DBBOFRwOBgA+T04pC0kDElMdC0VXBgYdFkU2CgtNEAEUVBwTWXhTVG5SGg8e
 AB0cRSo+AwgKRSANExlJCBQaBAsANU9TKxFJL0dMHRwRTAtPBRwQMAAATQcB
 FlRlIkw5QwA2GggaR0YBBg5ZTgIcAAw3SVIaAQcVEU8QTyEaYy0fDE4ITlhI
-Jk8DCkkcC3hFMQIEC0EbAVIqCFZBO1IdBgZUVA4QTgUWSR4QJwwRTWM=
+Jk8DCkkcC3hFMQIEC0EbAVIqCFZBO1IdBgZUVA4QTgUWSR4QJwwRTWM=";
+
+    let mut contents = Vec::<u8>::new();
+
+    for line in data.split('\n') {
+        contents.append(&mut base64::decode(line).unwrap());
+        contents.push('\n' as u8);
+    }
+
+    let (mut best_edit_distance, mut best_key_size) = (f32::MAX, 0);
+    for key_size in 2..41 {
+        let edit_distance = cryptolib::text::hamming_distance(
+            &contents[..key_size],
+            &contents[key_size..2 * key_size],
+        ) as f32
+            / key_size as f32;
+        if edit_distance < best_edit_distance {
+            best_edit_distance = edit_distance;
+            best_key_size = key_size;
+        }
+    }
+
+    let mut transposed_blocks = vec![Vec::<u8>::new(); best_key_size];
+
+    contents.chunks(best_key_size).for_each(|b| {
+        b.iter()
+            .enumerate()
+            .for_each(|(i, c)| transposed_blocks[i].push(*c))
+    });
+
+    let mut key = Vec::<u8>::with_capacity(best_key_size);
+
+    transposed_blocks.iter().for_each(|b| {
+        if let Some((k, _, _)) = cryptolib::cracker::crack_single_xor(&b) {
+            key.push(k as u8);
+        } else {
+            println!("Could not find a single valid plaintext");
+        }
+    });
+
+    println!(
+        "{:?}",
+        String::from_utf8(
+            cryptolib::cipher::Xor {}
+                .decrypt(&contents, &key, None)
+                .unwrap()
+        )
+        .unwrap()
+    );
+}

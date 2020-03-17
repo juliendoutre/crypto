@@ -1,4 +1,9 @@
-0e3647e8592d35514a081243582536ed3de6734059001e3f535ce6271032
+use cryptolib;
+use hex;
+
+#[test]
+fn detect_single_character_xor() {
+    let data = "0e3647e8592d35514a081243582536ed3de6734059001e3f535ce6271032
 334b041de124f73c18011a50e608097ac308ecee501337ec3e100854201d
 40e127f51c10031d0133590b1e490f3514e05a54143d08222c2a4071e351
 45440b171d5c1b21342e021c3a0eee7373215c4024f0eb733cf006e2040c
@@ -324,4 +329,24 @@ e03555453d1e31775f37331823164c341c09e310463438481019fb0b12fa
 1c595d183539220eec123478535337110424f90a355af44c267be848173f
 41053f5cef5f6f56e4f5410a5407281600200b2649460a2e3a3c38492a0c
 4c071a57e9356ee415103c5c53e254063f2019340969e30a2e381d5b2555
-32042f46431d2c44607934ed180c1028136a5f2b26092e3b2c4e2930585a
+32042f46431d2c44607934ed180c1028136a5f2b26092e3b2c4e2930585a";
+
+    let (mut best_key, mut best_plaintext, mut best_score, mut best_line) =
+        (' ', Vec::<u8>::new(), 0.0, 0);
+
+    for (i, line) in data.split('\n').enumerate() {
+        let ciphertext = hex::decode(line).unwrap();
+        if let Some((key, plaintext, score)) = cryptolib::cracker::crack_single_xor(&ciphertext) {
+            if score > best_score {
+                best_key = key;
+                best_plaintext = plaintext;
+                best_score = score;
+                best_line = i;
+            }
+        }
+    }
+
+    assert_eq!(best_line, 170);
+    assert_eq!(best_key, '5');
+    assert_eq!(best_plaintext, "Now that the party is jumping\n".as_bytes());
+}
