@@ -1,5 +1,5 @@
 use base64;
-use openssl::symm;
+use cryptolib::{self, cipher::Cipher};
 use std::{
     env,
     fs::File,
@@ -32,8 +32,7 @@ fn main() {
 
     let key = &args[2].as_bytes();
 
-    let cipher = symm::Cipher::aes_128_ecb();
-    let plaintext = symm::decrypt(cipher, key, None, &contents).unwrap();
+    let plaintext = cryptolib::cipher::AesEcb::new().decrypt(&contents, key);
 
     println!("{:?}", String::from_utf8(plaintext).unwrap());
 }

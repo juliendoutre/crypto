@@ -64,7 +64,7 @@ mod test {
     #[test]
     fn simple_padding() {
         assert_eq!(
-            &PKCS7 {}.pad("YELLOW SUBMARINE".as_bytes(), 20),
+            PKCS7 {}.pad("YELLOW SUBMARINE".as_bytes(), 20),
             b"YELLOW SUBMARINE\x04\x04\x04\x04"
         );
     }
@@ -72,7 +72,7 @@ mod test {
     #[test]
     fn simple_unpadding() {
         assert_eq!(
-            &PKCS7 {}
+            PKCS7 {}
                 .unpad("ICE ICE BABY\x04\x04\x04\x04".as_bytes())
                 .unwrap(),
             b"ICE ICE BABY"

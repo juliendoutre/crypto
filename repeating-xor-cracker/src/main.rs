@@ -1,5 +1,5 @@
 use base64;
-use cryptolib;
+use cryptolib::{self, cipher::*};
 use std::{
     env, f32,
     fs::File,
@@ -60,6 +60,6 @@ fn main() {
 
     println!(
         "{:?}",
-        String::from_utf8(cryptolib::cipher::repeating_xor(&contents, &key)).unwrap()
+        String::from_utf8(cryptolib::cipher::Xor {}.decrypt(&contents, &key)).unwrap()
     );
 }
