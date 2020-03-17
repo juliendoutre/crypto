@@ -46,3 +46,13 @@ pub fn hamming_distance(a: &[u8], b: &[u8]) -> usize {
         .fold(0, |s, (i, j)| s + (i ^ j).count_ones() as usize)
         + (a.len() - b.len()) * 8
 }
+
+#[cfg(test)]
+mod test {
+    use super::*;
+
+    #[test]
+    fn test_hamming_distance() {
+        assert_eq!(hamming_distance(b"this is a test", b"wokka wokka!!!"), 37)
+    }
+}
