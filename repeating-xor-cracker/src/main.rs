@@ -60,6 +60,11 @@ fn main() {
 
     println!(
         "{:?}",
-        String::from_utf8(cryptolib::cipher::Xor {}.decrypt(&contents, &key)).unwrap()
+        String::from_utf8(
+            cryptolib::cipher::Xor {}
+                .decrypt(&contents, &key, None)
+                .unwrap()
+        )
+        .unwrap()
     );
 }

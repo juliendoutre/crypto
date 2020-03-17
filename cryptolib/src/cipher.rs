@@ -1,9 +1,19 @@
 use super::xor;
-use openssl::symm;
+use openssl::{error::ErrorStack, symm};
 
 pub trait Cipher {
-    fn encrypt(&self, plaintext: &[u8], key: &[u8]) -> Vec<u8>;
-    fn decrypt(&self, ciphertext: &[u8], key: &[u8]) -> Vec<u8>;
+    fn encrypt(
+        &self,
+        plaintext: &[u8],
+        key: &[u8],
+        iv: Option<&[u8]>,
+    ) -> Result<Vec<u8>, ErrorStack>;
+    fn decrypt(
+        &self,
+        ciphertext: &[u8],
+        key: &[u8],
+        iv: Option<&[u8]>,
+    ) -> Result<Vec<u8>, ErrorStack>;
 }
 
 pub struct Xor;
@@ -21,12 +31,22 @@ impl Xor {
 }
 
 impl Cipher for Xor {
-    fn encrypt(&self, plaintext: &[u8], key: &[u8]) -> Vec<u8> {
-        self.repeating_xor(plaintext, key)
+    fn encrypt(
+        &self,
+        plaintext: &[u8],
+        key: &[u8],
+        _: Option<&[u8]>,
+    ) -> Result<Vec<u8>, ErrorStack> {
+        Ok(self.repeating_xor(plaintext, key))
     }
 
-    fn decrypt(&self, ciphertext: &[u8], key: &[u8]) -> Vec<u8> {
-        self.repeating_xor(ciphertext, key)
+    fn decrypt(
+        &self,
+        ciphertext: &[u8],
+        key: &[u8],
+        _: Option<&[u8]>,
+    ) -> Result<Vec<u8>, ErrorStack> {
+        Ok(self.repeating_xor(ciphertext, key))
     }
 }
 
@@ -43,12 +63,54 @@ impl AesEcb {
 }
 
 impl Cipher for AesEcb {
-    fn encrypt(&self, plaintext: &[u8], key: &[u8]) -> Vec<u8> {
-        symm::encrypt(self.cipher, key, None, plaintext).unwrap()
+    fn encrypt(
+        &self,
+        plaintext: &[u8],
+        key: &[u8],
+        _: Option<&[u8]>,
+    ) -> Result<Vec<u8>, ErrorStack> {
+        symm::encrypt(self.cipher, key, None, plaintext)
     }
 
-    fn decrypt(&self, ciphertext: &[u8], key: &[u8]) -> Vec<u8> {
-        symm::decrypt(self.cipher, key, None, ciphertext).unwrap()
+    fn decrypt(
+        &self,
+        ciphertext: &[u8],
+        key: &[u8],
+        _: Option<&[u8]>,
+    ) -> Result<Vec<u8>, ErrorStack> {
+        symm::decrypt(self.cipher, key, None, ciphertext)
+    }
+}
+
+pub struct AesCbc {
+    cipher: symm::Cipher,
+}
+
+impl AesCbc {
+    pub fn new() -> AesCbc {
+        AesCbc {
+            cipher: symm::Cipher::aes_128_ecb(),
+        }
+    }
+}
+
+impl Cipher for AesCbc {
+    fn encrypt(
+        &self,
+        plaintext: &[u8],
+        key: &[u8],
+        _: Option<&[u8]>,
+    ) -> Result<Vec<u8>, ErrorStack> {
+        symm::encrypt(self.cipher, key, None, plaintext)
+    }
+
+    fn decrypt(
+        &self,
+        ciphertext: &[u8],
+        key: &[u8],
+        _: Option<&[u8]>,
+    ) -> Result<Vec<u8>, ErrorStack> {
+        symm::decrypt(self.cipher, key, None, ciphertext)
     }
 }
 
@@ -64,7 +126,10 @@ mod test {
 
         let expected_ciphertext = hex::decode("0b3637272a2b2e63622c2e69692a23693a2a3c6324202d623d63343c2a26226324272765272a282b2f20430a652e2c652a3124333a653e2b2027630c692b20283165286326302e27282f").unwrap();
 
-        assert_eq!(Xor {}.encrypt(plaintext, key), expected_ciphertext);
+        assert_eq!(
+            Xor {}.encrypt(plaintext, key, None).unwrap(),
+            expected_ciphertext
+        );
     }
 
     #[test]
@@ -76,6 +141,9 @@ mod test {
             "Burning 'em, if you ain't quick and nimble\nI go crazy when I hear a cymbal"
                 .as_bytes();
 
-        assert_eq!(Xor {}.decrypt(&ciphertext, key), expected_plaintext);
+        assert_eq!(
+            Xor {}.decrypt(&ciphertext, key, None).unwrap(),
+            expected_plaintext
+        );
     }
 }

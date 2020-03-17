@@ -32,7 +32,9 @@ fn main() {
 
     let key = &args[2].as_bytes();
 
-    let plaintext = cryptolib::cipher::AesEcb::new().decrypt(&contents, key);
+    let plaintext = cryptolib::cipher::AesEcb::new()
+        .decrypt(&contents, key, None)
+        .unwrap();
 
     println!("{:?}", String::from_utf8(plaintext).unwrap());
 }
