@@ -75,9 +75,9 @@ S15AVD2QS1V6fhRimJSVyT6QuGb8tKRsl2N+a2Xze36vgMhw7XK7zh//jC2H";
 
     let key = "YELLOW SUBMARINE".as_bytes();
 
-    let plaintext = cryptolib::cipher::AesEcb::new()
+    let plaintext = cryptolib::cipher::AesEcb {}
         .decrypt(&contents, key, None)
         .unwrap();
 
-    println!("{:?}", String::from_utf8(plaintext).unwrap());
+    println!("{}", String::from_utf8(plaintext).unwrap());
 }

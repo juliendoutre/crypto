@@ -1,5 +1,8 @@
 use super::xor;
-use openssl::symm;
+use aes::{
+    block_cipher_trait::{generic_array::GenericArray, BlockCipher},
+    Aes128,
+};
 use std::{error::Error, fmt};
 
 #[derive(Debug)]
@@ -62,17 +65,7 @@ impl Cipher for Xor {
     }
 }
 
-pub struct AesEcb {
-    cipher: symm::Cipher,
-}
-
-impl AesEcb {
-    pub fn new() -> AesEcb {
-        AesEcb {
-            cipher: symm::Cipher::aes_128_ecb(),
-        }
-    }
-}
+pub struct AesEcb;
 
 impl Cipher for AesEcb {
     fn encrypt(
@@ -81,10 +74,21 @@ impl Cipher for AesEcb {
         key: &[u8],
         _: Option<&[u8]>,
     ) -> Result<Vec<u8>, EncryptionError> {
-        match symm::encrypt(self.cipher, key, None, plaintext) {
-            Ok(ciphertext) => Ok(ciphertext),
-            Err(_) => Err(EncryptionError),
+        if key.len() != 16 || plaintext.len() % 16 != 0 {
+            return Err(EncryptionError);
         }
+
+        let mut ciphertext = Vec::<u8>::with_capacity(plaintext.len());
+
+        let cipher = Aes128::new(&GenericArray::from_slice(key));
+
+        for b in plaintext.chunks(16) {
+            let mut block = GenericArray::clone_from_slice(b);
+            cipher.encrypt_block(&mut block);
+            ciphertext.append(&mut block.to_vec());
+        }
+
+        Ok(ciphertext)
     }
 
     fn decrypt(
@@ -93,24 +97,25 @@ impl Cipher for AesEcb {
         key: &[u8],
         _: Option<&[u8]>,
     ) -> Result<Vec<u8>, EncryptionError> {
-        match symm::decrypt(self.cipher, key, None, ciphertext) {
-            Ok(plaintext) => Ok(plaintext),
-            Err(_) => Err(EncryptionError),
+        if key.len() != 16 || ciphertext.len() % 16 != 0 {
+            return Err(EncryptionError);
         }
+
+        let mut plaintext = Vec::<u8>::with_capacity(ciphertext.len());
+
+        let cipher = Aes128::new(&GenericArray::from_slice(key));
+
+        for b in ciphertext.chunks(16) {
+            let mut block = GenericArray::clone_from_slice(b);
+            cipher.decrypt_block(&mut block);
+            plaintext.append(&mut block.to_vec());
+        }
+
+        Ok(plaintext)
     }
 }
 
-pub struct AesCbc {
-    cipher: symm::Cipher,
-}
-
-impl AesCbc {
-    pub fn new() -> AesCbc {
-        AesCbc {
-            cipher: symm::Cipher::aes_128_ecb(),
-        }
-    }
-}
+pub struct AesCbc;
 
 impl Cipher for AesCbc {
     fn encrypt(
@@ -119,20 +124,24 @@ impl Cipher for AesCbc {
         key: &[u8],
         iv: Option<&[u8]>,
     ) -> Result<Vec<u8>, EncryptionError> {
-        if key.len() != 16 || iv.is_none() || (iv.is_some() && iv.unwrap().len() != 16) {
+        if key.len() != 16
+            || plaintext.len() % 16 != 0
+            || iv.is_none()
+            || (iv.is_some() && iv.unwrap().len() != 16)
+        {
             return Err(EncryptionError);
         }
 
         if let Some(iv) = iv {
             let mut ciphertext = Vec::<u8>::with_capacity(plaintext.len());
 
-            let mut c = iv.to_vec();
-            for p in plaintext.chunks(16) {
-                c = match symm::encrypt(self.cipher, key, None, &xor(p, &c)) {
-                    Ok(b) => b,
-                    Err(_) => return Err(EncryptionError),
-                };
+            let cipher = Aes128::new(&GenericArray::from_slice(key));
 
+            let mut c = iv.to_vec();
+            for b in plaintext.chunks(16) {
+                let mut block = GenericArray::clone_from_slice(&xor(b, &c));
+                cipher.encrypt_block(&mut block);
+                c = block.to_vec();
                 ciphertext.extend(&c);
             }
 
@@ -148,21 +157,28 @@ impl Cipher for AesCbc {
         key: &[u8],
         iv: Option<&[u8]>,
     ) -> Result<Vec<u8>, EncryptionError> {
-        if key.len() != 16 || iv.is_none() || (iv.is_some() && iv.unwrap().len() != 16) {
+        if key.len() != 16
+            || ciphertext.len() % 16 != 0
+            || iv.is_none()
+            || (iv.is_some() && iv.unwrap().len() != 16)
+        {
             return Err(EncryptionError);
         }
 
         if let Some(iv) = iv {
             let mut plaintext = Vec::<u8>::with_capacity(ciphertext.len());
 
-            let previous_c = iv.to_vec();
-            for c in ciphertext.chunks(16) {
-                let decrypted_current_c = match symm::decrypt(self.cipher, key, None, c) {
-                    Ok(b) => b,
-                    Err(_) => return Err(EncryptionError),
-                };
+            let cipher = Aes128::new(&GenericArray::from_slice(key));
 
-                plaintext.extend(&xor(&previous_c, &decrypted_current_c));
+            let mut c = iv.to_vec();
+            for b in ciphertext.chunks(16) {
+                let mut block = GenericArray::clone_from_slice(b);
+                let current_c = block.to_vec();
+                cipher.decrypt_block(&mut block);
+
+                plaintext.append(&mut xor(&c, &block.to_vec()));
+
+                c = current_c;
             }
 
             return Ok(plaintext);
