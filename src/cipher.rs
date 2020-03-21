@@ -3,6 +3,7 @@ use aes::{
     block_cipher_trait::{generic_array::GenericArray, BlockCipher},
     Aes128,
 };
+use rand::prelude::*;
 use std::{error::Error, fmt};
 
 #[derive(Debug)]
@@ -186,4 +187,19 @@ impl Cipher for AesCbc {
 
         Err(EncryptionError)
     }
+}
+
+pub fn random_key() -> Vec<u8> {
+    (0..16).map(|_| random::<u8>()).collect()
+}
+
+pub fn encryption_oracle(plaintext: &[u8]) -> Vec<u8> {
+    let key = random_key();
+
+    if random() {
+        return AesEcb.encrypt(plaintext, &key, None).unwrap();
+    }
+
+    let iv = random_key();
+    AesCbc.encrypt(plaintext, &key, Some(&iv)).unwrap()
 }
