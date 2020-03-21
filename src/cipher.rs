@@ -209,15 +209,17 @@ pub fn encryption_oracle(plaintext: &[u8]) -> Vec<u8> {
         if b.len() == 16 {
             p.append(&mut PKCS7::pad(&Vec::<u8>::new(), 16));
         } else {
-            let padded_block = &mut PKCS7::pad(b, 16)[16 - b.len()..];
-            p.extend_from_slice(&padded_block);
+            let padded_block = &PKCS7::pad(b, 16)[b.len()..];
+            p.extend_from_slice(padded_block);
         }
     }
 
     if random() {
+        println!("Oracle uses ECB");
         return AesEcb.encrypt(&p, &key, None).unwrap();
     }
 
+    println!("Oracle uses CBC");
     let iv = random_key();
     AesCbc.encrypt(&p, &key, Some(&iv)).unwrap()
 }

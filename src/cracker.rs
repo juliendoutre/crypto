@@ -1,6 +1,4 @@
-use super::english;
-use super::text;
-use super::xor;
+use super::{cipher, english, text, xor};
 use std::collections::HashMap;
 
 pub fn score(plaintext: &str) -> f32 {
@@ -46,4 +44,27 @@ pub fn crack_single_xor(ciphertext: &[u8]) -> Option<(char, Vec<u8>, f32)> {
     } else {
         return None;
     }
+}
+
+pub enum AesMode {
+    ECB,
+    CBC,
+}
+
+pub fn detect_aes_mode() -> AesMode {
+    let payload: Vec<u8> = vec![0; 43];
+
+    let ciphertext = cipher::encryption_oracle(&payload);
+
+    for b in ciphertext.chunks(16) {
+        println!("{:?}", b);
+    }
+
+    if ciphertext[16..32] == ciphertext[32..48] {
+        println!("Detected ECB");
+        return AesMode::ECB;
+    }
+
+    println!("Detected CBC");
+    AesMode::CBC
 }
