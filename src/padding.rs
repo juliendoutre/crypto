@@ -12,14 +12,14 @@ impl fmt::Display for InvalidPaddingError {
 }
 
 pub trait Padder {
-    fn pad(&self, block: &[u8], padding_length: usize) -> Vec<u8>;
-    fn unpad(&self, block: &[u8]) -> Result<Vec<u8>, InvalidPaddingError>;
+    fn pad(block: &[u8], padding_length: usize) -> Vec<u8>;
+    fn unpad(block: &[u8]) -> Result<Vec<u8>, InvalidPaddingError>;
 }
 
 pub struct PKCS7;
 
 impl Padder for PKCS7 {
-    fn pad(&self, block: &[u8], padding_length: usize) -> Vec<u8> {
+    fn pad(block: &[u8], padding_length: usize) -> Vec<u8> {
         let mut padded_block = Vec::<u8>::with_capacity(padding_length);
 
         for i in 0..cmp::min(padding_length, block.len()) {
@@ -36,7 +36,7 @@ impl Padder for PKCS7 {
         padded_block
     }
 
-    fn unpad(&self, block: &[u8]) -> Result<Vec<u8>, InvalidPaddingError> {
+    fn unpad(block: &[u8]) -> Result<Vec<u8>, InvalidPaddingError> {
         if block.len() == 0 {
             return Err(InvalidPaddingError {});
         }
