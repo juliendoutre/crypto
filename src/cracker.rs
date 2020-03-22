@@ -61,10 +61,8 @@ pub fn detect_aes_mode() -> AesMode {
     }
 
     if ciphertext[16..32] == ciphertext[32..48] {
-        println!("Detected ECB");
         return AesMode::ECB;
     }
 
-    println!("Detected CBC");
     AesMode::CBC
 }

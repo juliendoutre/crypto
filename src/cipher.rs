@@ -215,11 +215,9 @@ pub fn encryption_oracle(plaintext: &[u8]) -> Vec<u8> {
     }
 
     if random() {
-        println!("Oracle uses ECB");
         return AesEcb.encrypt(&p, &key, None).unwrap();
     }
 
-    println!("Oracle uses CBC");
     let iv = random_key();
     AesCbc.encrypt(&p, &key, Some(&iv)).unwrap()
 }
