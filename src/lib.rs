@@ -1,6 +1,7 @@
 pub mod cipher;
 pub mod cracker;
 pub mod english;
+pub mod oracle;
 pub mod padding;
 pub mod text;
 

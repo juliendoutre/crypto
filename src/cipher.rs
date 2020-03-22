@@ -1,4 +1,4 @@
-use super::{padding::*, xor};
+use super::xor;
 use aes::{
     block_cipher_trait::{generic_array::GenericArray, BlockCipher},
     Aes128,
@@ -189,35 +189,10 @@ impl Cipher for AesCbc {
     }
 }
 
-fn random_block(size: usize) -> Vec<u8> {
+pub fn random_block(size: usize) -> Vec<u8> {
     (0..size).map(|_| random::<u8>()).collect()
 }
 
-fn random_key() -> Vec<u8> {
+pub fn random_key() -> Vec<u8> {
     random_block(16)
-}
-
-pub fn encryption_oracle(plaintext: &[u8]) -> Vec<u8> {
-    let key = random_key();
-
-    let mut rng = thread_rng();
-    let mut p = random_block(rng.gen_range(5, 11));
-    p.extend_from_slice(plaintext);
-    p.extend(random_block(rng.gen_range(5, 11)));
-
-    if let Some(b) = p.chunks(16).last() {
-        if b.len() == 16 {
-            p.append(&mut PKCS7::pad(&Vec::<u8>::new(), 16));
-        } else {
-            let padded_block = &PKCS7::pad(b, 16)[b.len()..];
-            p.extend_from_slice(padded_block);
-        }
-    }
-
-    if random() {
-        return AesEcb.encrypt(&p, &key, None).unwrap();
-    }
-
-    let iv = random_key();
-    AesCbc.encrypt(&p, &key, Some(&iv)).unwrap()
 }
