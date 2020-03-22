@@ -38,19 +38,19 @@ impl Oracle for AesMode {
     }
 }
 
-pub struct EcbSimpleOracle {
+pub struct EcbSimple {
     key: Vec<u8>,
 }
 
-impl EcbSimpleOracle {
-    pub fn new() -> EcbSimpleOracle {
-        EcbSimpleOracle {
+impl EcbSimple {
+    pub fn new() -> EcbSimple {
+        EcbSimple {
             key: cipher::random_key(),
         }
     }
 }
 
-impl Oracle for EcbSimpleOracle {
+impl Oracle for EcbSimple {
     fn encrypt(&self, plaintext: &[u8]) -> Vec<u8> {
         let mut p = Vec::from(plaintext);
         p.append(&mut base64::decode("Um9sbGluJyBpbiBteSA1LjAKV2l0aCBteSByYWctdG9wIGRvd24gc28gbXkgaGFpciBjYW4gYmxvdwpUaGUgZ2lybGllcyBvbiBzdGFuZGJ5IHdhdmluZyBqdXN0IHRvIHNheSBoaQpEaWQgeW91IHN0b3A/IE5vLCBJIGp1c3QgZHJvdmUgYnkK").unwrap());

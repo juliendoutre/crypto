@@ -1,8 +1,4 @@
-use super::{
-    english,
-    oracle::{self, Oracle},
-    text, xor,
-};
+use super::{english, oracle::Oracle, text, xor};
 use std::collections::HashMap;
 
 pub fn score(plaintext: &str) -> f32 {
@@ -55,18 +51,27 @@ pub enum AesMode {
     CBC,
 }
 
-pub fn detect_aes_mode() -> AesMode {
+pub fn detect_aes_mode(or: &dyn Oracle) -> AesMode {
     let payload: Vec<u8> = vec![0; 43];
 
-    let ciphertext = oracle::AesMode.encrypt(&payload);
-
-    for b in ciphertext.chunks(16) {
-        println!("{:?}", b);
-    }
+    let ciphertext = or.encrypt(&payload);
 
     if ciphertext[16..32] == ciphertext[32..48] {
         return AesMode::ECB;
     }
 
     AesMode::CBC
+}
+
+pub fn detect_block_size(or: &dyn Oracle) -> usize {
+    let mut plaintext_size = 0;
+    let mut ciphertext_size = or.encrypt(&vec![0; plaintext_size]).len();
+    let block_size = ciphertext_size;
+
+    while ciphertext_size == block_size {
+        plaintext_size += 1;
+        ciphertext_size = or.encrypt(&vec![0; plaintext_size]).len();
+    }
+
+    ciphertext_size - block_size
 }
