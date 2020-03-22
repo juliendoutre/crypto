@@ -58,7 +58,7 @@ pub enum AesMode {
 pub fn detect_aes_mode() -> AesMode {
     let payload: Vec<u8> = vec![0; 43];
 
-    let ciphertext = oracle::AesMode::encrypt(&payload);
+    let ciphertext = oracle::AesMode.encrypt(&payload);
 
     for b in ciphertext.chunks(16) {
         println!("{:?}", b);
