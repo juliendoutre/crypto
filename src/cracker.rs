@@ -51,7 +51,7 @@ pub enum AesMode {
     CBC,
 }
 
-pub fn detect_aes_mode(or: &dyn Oracle) -> AesMode {
+pub fn detect_aes_mode(or: &impl Oracle) -> AesMode {
     let payload: Vec<u8> = vec![0; 43];
 
     let ciphertext = or.encrypt(&payload);
@@ -63,7 +63,7 @@ pub fn detect_aes_mode(or: &dyn Oracle) -> AesMode {
     AesMode::CBC
 }
 
-pub fn detect_block_size(or: &dyn Oracle) -> usize {
+pub fn detect_block_size(or: &impl Oracle) -> usize {
     let mut plaintext_size = 0;
     let mut ciphertext_size = or.encrypt(&vec![0; plaintext_size]).len();
     let block_size = ciphertext_size;
@@ -74,4 +74,20 @@ pub fn detect_block_size(or: &dyn Oracle) -> usize {
     }
 
     ciphertext_size - block_size
+}
+
+pub fn decrypt_ecb_simple(or: &impl Oracle) -> Vec<u8> {
+    let block_size = detect_block_size(or);
+    let reference_block = or.encrypt(&vec![0; block_size - 1]);
+    let mut recovered_message = Vec::<u8>::new();
+
+    for b in 0..=255 as u8 {
+        let mut block: Vec<u8> = vec![0; block_size - 1];
+        block.push(b);
+        if or.encrypt(&block)[..16] == reference_block[..16] {
+            recovered_message.push(b);
+        }
+    }
+
+    recovered_message
 }
