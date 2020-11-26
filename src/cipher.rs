@@ -24,6 +24,7 @@ pub trait Cipher {
         key: &[u8],
         iv: Option<&[u8]>,
     ) -> Result<Vec<u8>, EncryptionError>;
+
     fn decrypt(
         &self,
         ciphertext: &[u8],
@@ -33,18 +34,6 @@ pub trait Cipher {
 }
 
 pub struct Xor;
-
-impl Xor {
-    fn repeating_xor(&self, plaintext: &[u8], key: &[u8]) -> Vec<u8> {
-        let mut ciphertext = Vec::<u8>::with_capacity(plaintext.len());
-
-        plaintext.chunks(key.len()).for_each(|b| {
-            ciphertext.append(&mut xor(b, &key[..b.len()]));
-        });
-
-        ciphertext
-    }
-}
 
 impl Cipher for Xor {
     fn encrypt(
@@ -63,6 +52,18 @@ impl Cipher for Xor {
         _: Option<&[u8]>,
     ) -> Result<Vec<u8>, EncryptionError> {
         Ok(self.repeating_xor(ciphertext, key))
+    }
+}
+
+impl Xor {
+    fn repeating_xor(&self, plaintext: &[u8], key: &[u8]) -> Vec<u8> {
+        let mut ciphertext = Vec::<u8>::with_capacity(plaintext.len());
+
+        plaintext.chunks(key.len()).for_each(|b| {
+            ciphertext.append(&mut xor(b, &key[..b.len()]));
+        });
+
+        ciphertext
     }
 }
 
@@ -189,10 +190,10 @@ impl Cipher for AesCbc {
     }
 }
 
-pub fn random_block(size: usize) -> Vec<u8> {
-    (0..size).map(|_| random::<u8>()).collect()
-}
-
 pub fn random_key() -> Vec<u8> {
     random_block(16)
+}
+
+pub fn random_block(size: usize) -> Vec<u8> {
+    (0..size).map(|_| random::<u8>()).collect()
 }
